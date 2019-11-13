@@ -164,6 +164,31 @@ paths:
       description: ''
       operationId: getServices
       requestBody: {}
+  /orders/bill/create:
+    post:
+      summary: Метод выставления счета
+      tags:
+        - orders
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+                format: uuid
+                example: b1337136-8d22-4478-9555-17095b0eb3bf
+                description: 'todo: should be 201'
+              examples:
+                example-1: {}
+        '400':
+          description: Bad Request
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: ./models/billcreateform.v1.yaml
+        description: ''
 components:
   schemas:
     Tweet:

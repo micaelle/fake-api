@@ -1,0 +1,13 @@
+title: BillCreateForm
+x-tags:
+  - orders
+type: object
+properties:
+  PayerAbonentId:
+    type: string
+    format: uuid
+    description: Плательщик в формате идентификатор абонента
+  '':
+    type: string
+required:
+  - PayerAbonentId
