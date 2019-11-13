@@ -133,6 +133,37 @@ paths:
       operationId: GetProducts
       description: just some description of orders/products/info
     parameters: []
+  '/orders/services/{productId}/info':
+    parameters:
+      - type: string
+        name: productId
+        in: path
+        required: true
+        schema:
+          type: string
+        description: ProductId
+    get:
+      summary: Your GET endpoint
+      tags: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceDescription'
+              examples:
+                example-1:
+                  value:
+                    - ProductId: Edi
+                      NamedId: km_mercurypoints
+                      Name: Торговые точки (Меркурий Маркет)
+                    - ProductId: Edi
+                      NamedId: api
+                      Name: Доступ к API
+      description: ''
+      operationId: getServices
+      requestBody: {}
 components:
   schemas:
     Tweet:
@@ -153,6 +184,32 @@ components:
           readOnly: true
       x-tags:
         - orders
+    ProductId:
+      $ref: ./models/productid.v1.yaml
+      x-examples:
+        example-1: {}
+    ServiceDescription:
+      title: ServiceDescription
+      type: object
+      x-tags:
+        - orders
+      properties:
+        ProductId:
+          $ref: ./models/productid.v1.yaml
+        NameId:
+          type: string
+          description: Идентификатор продукта
+        Name:
+          type: string
+          description: Идентификатор сервиса
+        '':
+          type: string
+          description: Человекочитаемое имя сервиса
+      required:
+        - ProductId
+        - NameId
+        - Name
+        - ''
   securitySchemes:
     API Key - 1:
       name: API Key

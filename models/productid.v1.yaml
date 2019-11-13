@@ -1,0 +1,51 @@
+type: string
+title: productId
+enum:
+  - Kopf
+  - Diadoc
+  - OtchetRu
+  - Focus
+  - Zakupki
+  - KonturExtern
+  - Edi
+  - Customs
+  - Fms
+  - Pii
+  - AlcoReport
+  - AlcoRevise
+  - Kep
+  - Sertum
+  - Rosreestr
+  - Smev
+  - DopUc
+  - KepEgais
+  - Bay
+  - Ofd
+  - Market
+  - KmService
+  - Kcr
+  - OfdApi
+  - Prism
+  - BidsSupportServices
+  - Reestro
+  - Pulse
+  - Insurance
+  - SoftCarriers
+  - Click
+  - OnlineCert
+  - Factoring
+  - Mix
+  - Compass
+  - Postavki
+  - Spectr
+  - Mercury
+  - Marking
+  - Snab
+  - Vzaimoraschety
+  - Pravo
+  - Normativ
+  - Edoetp
+  - FocusApi
+example: Edi
+minLength: 1
+pattern: '^[A-Za-z0-9]+'
