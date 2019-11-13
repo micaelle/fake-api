@@ -1,48 +1,54 @@
-openapi: "3.0.0"
+openapi: 3.0.0
 info:
   version: 1.0.0
-  title: Secret Tweetor REST API
-  description: This API is used for Tweet management service
+  title: Billy/Orders REST API
+  description: This API is used for access to Orders subsystem
+  contact:
+    name: Michael Fedchenko
 servers:
-  - url: http://tweetor.swagger.io/v1
+  - url: 'http://api-billy.testkontur.ru'
+    description: staging
+  - url: 'https://billy-publicapi.kontur.ru'
+    description: production
 paths:
   /tweets:
     post:
-      tags: 
+      tags:
         - tweet
       requestBody:
-        description: "Request body"
+        description: Request body
         content:
           application/json:
             schema:
               $ref: '#/components/schemas/Tweet'
       responses:
-        "200":
+        '200':
           description: Get Tweet
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Tweet'
               example:
-                id: "abc-f45def-5sdaf-5636f"
-                text: "Merry Christmast Everyone!!!"
-                createdTime: "2018-12-24T09:21:41.827Z"
+                id: abc-f45def-5sdaf-5636f
+                text: 'Merry Christmast Everyone!!!'
+                createdTime: '2018-12-24T09:21:41.827Z'
+      description: some descr
+      operationId: addTweet
     get:
-      tags: 
+      tags:
         - tweet
-      parameters: 
+      parameters:
         - name: limit
           in: query
           schema:
-            type: integer 
+            type: integer
         - name: cursor
           in: query
           schema:
             type: string
-            
       responses:
-        "200":
-          description: "List Tweet Item"
+        '200':
+          description: List Tweet Item
           content:
             application/json:
               schema:
@@ -50,20 +56,22 @@ paths:
                 items:
                   $ref: '#/components/schemas/Tweet'
               example:
-              - id: "abc-f45def-5sdaf-5636f"
-                text: "Merry Christmast Everyone!!!"
-                createdTime: "2018-12-24T09:21:41.827Z"
-              - id: "abc-f45def-5sdaf-5636f"
-                text: "I believe santa will give me a great present"
-                createdTime: "2018-12-23T09:21:41.827Z"
-              - id: "abc-f45def-5sdaf-5636f"
-                text: "Hello my secret santa. Thank you!!!"
-                createdTime: "2018-12-22T09:21:41.827Z"
-  /tweets/{id}:
+                - id: abc-f45def-5sdaf-5636f
+                  text: 'Merry Christmast Everyone!!!'
+                  createdTime: '2018-12-24T09:21:41.827Z'
+                - id: abc-f45def-5sdaf-5636f
+                  text: I believe santa will give me a great present
+                  createdTime: '2018-12-23T09:21:41.827Z'
+                - id: abc-f45def-5sdaf-5636f
+                  text: 'Hello my secret santa. Thank you!!!'
+                  createdTime: '2018-12-22T09:21:41.827Z'
+      description: some descr
+      operationId: getTweets
+  '/tweets/{id}':
     get:
-      tags: 
+      tags:
         - tweet
-      parameters: 
+      parameters:
         - name: id
           in: path
           required: true
@@ -77,16 +85,17 @@ paths:
               schema:
                 $ref: '#/components/schemas/Tweet'
               example:
-                id: "abc-f45def-5sdaf-5636f"
-                text: "Merry Christmast Everyone!!!"
-                createdTime: "2018-12-24T09:21:41.827Z"
-        
+                id: abc-f45def-5sdaf-5636f
+                text: 'Merry Christmast Everyone!!!'
+                createdTime: '2018-12-24T09:21:41.827Z'
         '404':
           description: "Tweet doesn't exists"
+      description: some descr
+      operationId: getTweet
     delete:
-      tags: 
+      tags:
         - tweet
-      parameters: 
+      parameters:
         - name: id
           in: path
           required: true
@@ -94,24 +103,51 @@ paths:
             type: string
       responses:
         '204':
-          description: "Tweet deleted successfully"
+          description: Tweet deleted successfully
         '404':
           description: "Tweet doesn't exists"
+      description: some descr
+      operationId: deleteTweet
+  /orders/products/info:
+    get:
+      summary: product list
+      tags: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: ./models/productinfo.v1.yaml
+              examples:
+                example-1: {}
+      operationId: GetProducts
+      description: just some description of orders/products/info
+    parameters: []
 components:
-  schemas: 
+  schemas:
     Tweet:
       required:
         - name
       properties:
         id:
-          description: "generated from DB. Not required"
+          description: generated from DB. Not required
           type: string
-          example: 'abc-f45def-5sdaf-5636f'
-          readOnly: true  
+          example: abc-f45def-5sdaf-5636f
+          readOnly: true
         text:
           type: string
-          example: 'Merry Christmast'
+          example: Merry Christmast
         createdTime:
           type: string
           format: date-time
-          readOnly: true 
+          readOnly: true
+      x-tags:
+        - orders
+  securitySchemes:
+    API Key - 1:
+      name: API Key
+      type: apiKey
+      in: query

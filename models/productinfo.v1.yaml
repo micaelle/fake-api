@@ -1,0 +1,73 @@
+title: ProductInfo
+type: object
+x-tags:
+  - products
+x-examples:
+  example-1:
+    ProductId: AlcoReport
+    ProductName: Контур.Алко
+  example-2:
+    ProductId: Bank
+    ProductName: Контур.Банк
+  example-3:
+    ProductId: Prism
+    ProductName: Контур.Призма
+properties:
+  ProductId:
+    type: string
+    description: 'todo: use the Dictionary, Luke'
+    enum:
+      - Kopf
+      - Diadoc
+      - OtchetRu
+      - Focus
+      - Zakupki
+      - KonturExtern
+      - Edi
+      - Customs
+      - Fms
+      - Pii
+      - AlcoReport
+      - AlcoRevise
+      - Kep
+      - Sertum
+      - Rosreestr
+      - Smev
+      - DopUc
+      - KepEgais
+      - Bay
+      - Ofd
+      - Market
+      - KmService
+      - Kcr
+      - OfdApi
+      - Prism
+      - BidsSupportServices
+      - Reestro
+      - Pulse
+      - Insurance
+      - SoftCarriers
+      - Click
+      - OnlineCert
+      - Factoring
+      - Mix
+      - Compass
+      - Postavki
+      - Spectr
+      - Mercury
+      - Marking
+      - Snab
+      - Vzaimoraschety
+      - Pravo
+      - Normativ
+      - Edoetp
+      - FocusApi
+    minLength: 1
+    pattern: '^[A-Za-z0-9]+'
+  ProductName:
+    type: string
+    minLength: 1
+    pattern: '^[A-Za-z0-9-]+'
+required:
+  - ProductId
+  - ProductName
