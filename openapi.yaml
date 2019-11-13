@@ -122,7 +122,14 @@ paths:
                 items:
                   $ref: ./models/productinfo.v1.yaml
               examples:
-                example-1: {}
+                example-1:
+                  value:
+                    - ProductId: AlcoReport
+                      ProductName: Контур.Алко
+                    - ProductId: AlcoRevise
+                      ProductName: Контур.Алкосверка
+                    - ProductId: Bank
+                      ProductName: Контур.Банк
       operationId: GetProducts
       description: just some description of orders/products/info
     parameters: []
