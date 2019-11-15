@@ -188,6 +188,9 @@ Postman API / Import
    не разобрался до конца. Кажется, что это не работает в обе стороны - можно импортировать спеку и дальше использовать сгенерированное для богатых ручных тестов
    
 - обоснование мок-сервера https://stoplight.io/p/docs/gh/stoplightio/prism/docs/guides/workflow.md
+https://stoplight.io/blog/dont-code-fake-apis/
+https://stoplight.io/blog/mock-api-test/
+https://stoplight.io/blog/python-rest-api/
 
 
 https://github.com/stoplightio/prism/issues/435 - упоминается возможность кастомных моков
