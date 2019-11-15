@@ -77,6 +77,10 @@ paths:
           required: true
           schema:
             type: string
+        - schema:
+            type: string
+          in: query
+          description: ''
       responses:
         '200':
           description: Get Tweet
@@ -108,6 +112,13 @@ paths:
           description: "Tweet doesn't exists"
       description: some descr
       operationId: deleteTweet
+    parameters:
+      - schema:
+          type: string
+        name: ''
+        in: path
+        required: true
+        description: ''
   /orders/products/info:
     get:
       summary: product list
@@ -188,7 +199,10 @@ paths:
           application/json:
             schema:
               $ref: ./models/billcreateform.v1.yaml
+            examples:
+              example-1: {}
         description: ''
+    parameters: []
 components:
   schemas:
     Tweet:
