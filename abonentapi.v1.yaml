@@ -1,0 +1,168 @@
+openapi: 3.0.0
+info:
+  title: AbonentAPI
+  version: '1.3'
+  description: Billy.Orders Abonent API
+  contact:
+    name: Somebody
+servers:
+  - url: 'http://test-api/billing/orders'
+  - url: 'https://pulse-api.billing'
+    description: ''
+paths:
+  '/abonents/{id}':
+    get:
+      summary: Your GET  endpoint
+      tags: []
+      description: Получение абонента с реквизитами и лицевыми счетами по его идентификатору
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  abonentId:
+                    type: string
+                    format: uuid
+                  Requisites:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        RequisiteId:
+                          type: string
+                          format: uuid
+                  Accounts:
+                    type: array
+                    uniqueItems: true
+                    items:
+                      type: object
+                      properties:
+                        AccountId:
+                          type: string
+                          format: uuid
+                required:
+                  - abonentId
+        '400':
+          description: Неверные параметры запроса
+        '404':
+          description: Абонент не найден
+        '500':
+          description: Что-то пошло не так
+    parameters:
+      - schema:
+          type: string
+        name: id
+        in: path
+        required: true
+  /abonents:
+    parameters: []
+    post:
+      summary: ''
+      responses:
+        '201':
+          description: Абонент успешно создан
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  AbonentId:
+                    type: string
+                    format: uuid
+                required:
+                  - AbonentId
+        '400':
+          description: Неверные параметры запроса
+        '403':
+          description: Доступ запрещен
+        '500':
+          description: Что-то пошло не так
+      description: Создание абонента
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                inn:
+                  type: string
+                  pattern: "^\\d{10,12}"
+                kpp:
+                  type: string
+                  pattern: "^\\d{0,9}"
+                name:
+                  type: string
+                  maxLength: 255
+              required:
+                - inn
+                - name
+        description: 'Возможно расширение контракта (например, юридического адреса для формирования документов)'
+    get:
+      summary: ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  AbonentId:
+                    type: string
+                    format: uuid
+        '400':
+          description: Неверные параметры запроса
+        '403':
+          description: Доступ запрещен
+        '404':
+          description: Абонент не найден
+        '500':
+          description: Что-то пошло не так
+      parameters:
+        - schema:
+            type: string
+          in: query
+          name: inn
+          description: ИНН
+        - schema:
+            type: string
+          in: query
+          name: kpp
+          description: КПП
+        - schema:
+            type: string
+          in: query
+          name: accountId
+          description: Лицевой счет
+      description: Поиск абонента по ИНН-КПП или лицевому счету
+  '/abonents/{id}/accounts':
+    parameters:
+      - type: string
+        name: id
+        in: path
+        required: true
+    post:
+      summary: ''
+      responses:
+        '200':
+          description: Связь абонента с лицевыми счетами создана //todo какой код ответа возвращать 200 или 201?
+        '400':
+          description: Неверные параметры запроса
+        '403':
+          description: Доступ запрещен
+        '500':
+          description: что-то пошло не так
+      description: Создание связи абонента с лицевыми счетами
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              description: Массив идентификаторов лицевых счетов
+              items:
+                type: string
+components:
+  schemas: {}
