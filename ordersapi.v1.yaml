@@ -1,0 +1,346 @@
+openapi: 3.0.0
+info:
+  title: Billy.Billing.OrdersApi
+  version: '1.0'
+  description: Billy.Orders Abonent API
+  contact:
+    name: 'Slack channel #billing'
+servers:
+  - url: 'http://test-api/billing/orders'
+  - url: 'https://pulse-api.billing'
+    description: ''
+paths:
+  '/orders/v0/bills/{billId}':
+    get:
+      tags:
+        - Bill
+      description: Получить счет по Id
+      operationId: GetBill
+      parameters:
+        - name: billId
+          in: path
+          description: Id счета
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: x-Auth-CustomToken
+          in: header
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Запрошенный счет
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Bill'
+        '403':
+          description: 'Счет недоступен для получения через API, т.к. не является продажей'
+        '404':
+          description: Счет не найден
+  /orders/v0/bills:
+    post:
+      tags:
+        - Bill
+      description: "Создать счет по новой модели API заказов.\n\n1. Возможности\n\nМетод поддерживает выставление счета с разными типами продажи. Доступны:\n- первичное подключение;\n- продление, в том числе досрочное;\n- докупка к текущему или будущему тарифу;\n- смена тарифа.\nВ каждом сценарии возможны действия как с одним тарифом, так и с целым деревом тарифов. Дерево тарифов – совокупность тарифа и его модификаторов. Примеры: тариф; тариф и его модификаторы; модификатор и его модификатор.\n\nВ одном счете может быть несколько основных тарифов.\n\nДоступна оптовая покупка.\n\nМожно выставить счет на тарифы со следующими товарами:\n- подписка;\n- сертификат;\n- оборудование;\n- лицензия;\n- токен.\nНекоторые тарифы позволяют отложенно указать получателя услуги с помощью кодов активации. Пример тарифа: \"Стандарт на 12 месяцев\" по продукту Контур.Бухгалтерия (идентификатор тарифа bp_standart_12).\n\nПри выставлении счета можно управлять стоимостью при помощи:\n- применения скидок (не реализовано в API);\n- указания пользовательской стоимости тарифа (для тарифов с открытой ценой);\n- выбора тарифной зоны (не реализовано в API, автоматически выбирается тарифная зона по региону клиента).\n\n2. Ограничения\n\nСчет, выставленный через API, по умолчанию не отображается в канале продажи.\n\nНе поддерживается сценарий, когда плательщик не совпадает с получателем.\n\nНе поддерживается большое количество опта (например, счет на 500 сертификатов).\n\n(В процессе реализации) Не реализована кастомизация по токену, сертификату, подписке и оборудованию:\n- Нельзя выставить счет с кастомизацией по оборудованию.\n- Нельзя выставить счет, где требуется указать тип токена (рутокен, jakarta, ESMART Token и тд) (счет на тариф, где токент \"вшит\", можно выставить).\n- В EDI нельзя указать торговую сеть, то есть не на все тарифы выставится счет.\n\nНе реализовано применение скидок:\n- (В процессе реализации) Позиционная скидка.\n- Скидка менеджера.\n- Скидка на счет.\n- Скидка в рублях.\n- Акция.\nКроме перечисленных, есть скидки, которым не управляет пользователь: накопительная, комплектная, автоматическая. Информация о том, какие скидки применились и почему, не возвращается пользователю. \n\nНе поддерживаются сценарии выставления \"особенных\" счетов:\n- Промо-счет (счет можно выставить через API Промо разрешений).\n- Постоплатный счет (счета выставляют эксперты Биллинга).\n- Счет на Диадок нестандартный\n- Кастомный счет (счета выставляют техподдержка и ООРВ)."
+      operationId: BillNew
+      parameters:
+        - name: x-Auth-CustomToken
+          in: header
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json-patch+json:
+            schema:
+              $ref: '#/components/schemas/BillCreateForm'
+            examples: {}
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BillCreateForm'
+          text/json:
+            schema:
+              $ref: '#/components/schemas/BillCreateForm'
+          'application/*+json':
+            schema:
+              $ref: '#/components/schemas/BillCreateForm'
+        required: true
+        description: ''
+      responses:
+        '200':
+          description: Guid выставленного счёта
+          content:
+            application/json:
+              schema:
+                format: uuid
+                type: string
+        '400':
+          description: Ошибка валидации
+components:
+  schemas:
+    Bill:
+      type: object
+      description: ''
+      properties:
+        Id:
+          format: uuid
+          description: Идентификатор счёта.
+          type: string
+        OrderNumber:
+          description: Номер счёта.
+          type: string
+        CreateDate:
+          format: date-time
+          description: Дата и время выставления счёта по МСК.
+          type: string
+        Amount:
+          format: double
+          description: Сумма.
+          type: number
+        Tariffs:
+          description: 'Тарифы, купленные в счёте.'
+          uniqueItems: false
+          type: array
+          items:
+            $ref: '#/components/schemas/Tariff'
+        Platform:
+          description: "Платформа, с которой был выставлен счёт.\r\n\r\n* 0 - неизвестная\r\n* 1 - АРМ Партнёра\r\n* 2 - Биллинг ТП Контур\r\n* 3 - Контур-Отчет ПФ\r\n* 4 - Контур.Бухгалтерия\r\n* 5 - Портал Контур.Ру\r\n* 6 - Клиент-Сервис\r\n* 7 - Автоматические сервисы Billy\r\n* 8 - Диадок\r\n* 9 - Отчёт.ру\r\n* 10 - Контур-Фокус\r\n* 11 - Контур-Экстерн\r\n* 12 - Контур.Декларант\r\n* 13 - Контур.Закупки\r\n* 14 - Контур.EDI\r\n* 15 - Контур.Отель\r\n* 16 - Контур.152\r\n* 17 - Личный кабинет\r\n* 19 - Сертум\r\n* 20 - КЭП\r\n* 21 - Росреестр\r\n* 22 - СМЭВ\r\n* 23 - Дополнительные услуги УЦ\r\n* 24 - КЭП для ЕГАИС\r\n* 25 - Контур.Бухта\r\n* 26 - Контур.ОФД\r\n* 27 - Контур.Маркет\r\n* 28 - Сервис и настройка ККТ\r\n* 29 - Корпоративный центр регистрации\r\n* 30 - API выставления счетов\r\n* 31 - Онлайн сертификаты\r\n* 32 - Реестро"
+          enum:
+            - Unknown
+            - PartnersKontur
+            - BillingHDKontur
+            - ProductKOPF
+            - ProductBK
+            - PortalKontur
+            - ClientService
+            - BillyService
+            - ProductDiadoc
+            - ProductOtchetRu
+            - ProductFocus
+            - ProductKemb
+            - ProductCustoms
+            - ProductZakupki
+            - ProductEdi
+            - ProductFms
+            - ProductPii
+            - PersonalAccount
+            - ProductSertum
+            - ProductKep
+            - ProductRosreestr
+            - ProductSmev
+            - ProductDopUc
+            - ProductKepEgais
+            - ProductBay
+            - ProductOfd
+            - ProductMarket
+            - ProductKmService
+            - ProductKcr
+            - BillApi
+            - ProductOnlineCert
+            - ProductReestro
+          type: string
+    Tariff:
+      type: object
+      properties:
+        Id:
+          description: Идентификатор тарифа.
+          type: string
+        Name:
+          description: Название тарифа.
+          type: string
+        BeginDate:
+          format: date-time
+          description: Дата начала тарифа по МСК.
+          type: string
+        EndDate:
+          format: date-time
+          description: Дата окончания тарифа по МСК.
+          type: string
+        State:
+          description: "Состояние тарифа.\r\n            \r\n* null - не определён (для тарифов без подписок)\r\n* 1 - не активирован\r\n* 2 - активирован\r\n* 3 - деактивирован"
+          enum:
+            - Inactive
+            - Active
+            - Deactivated
+          type: string
+      x-examples: {}
+    BillCreateForm:
+      type: object
+      x-examples: {}
+      properties:
+        payer:
+          $ref: '#/components/schemas/Abonent'
+        positions:
+          description: |-
+            Позиции, входящие в счет.
+
+            Внутри одной позиции должно находиться только одно наименование тарифа и его модификаторы (в том числе модификаторы второго уровня). Например, выделяются в отдельные позиции:
+            - Основной тариф и его модификаторы, если они приобретаются в рамках счета.
+            - Второй основной тариф в счете и его модификаторы.
+            - Докупаемый к основному тарифу модификатор и его модификаторы, если основной тариф в рамках счета не приобретается.
+            - Тариф рабочего места.
+            И пр.
+          minLength: 1
+          uniqueItems: false
+          type: array
+          items:
+            $ref: '#/components/schemas/PositionForm'
+        Promotions:
+          type: array
+          items:
+            $ref: '#/components/schemas/Promotion'
+      required:
+        - payer
+        - positions
+    Abonent:
+      type: object
+      x-examples:
+        example-1: {}
+      description: ''
+      properties:
+        abonentId:
+          format: uuid
+          description: |-
+            Идентификатор абонента.
+
+            Чтобы создать нового абонента или получить идентификатор существующего абонента, необходимо воспользоваться методом API работы с абонентами.
+          type: string
+      required:
+        - abonentId
+    PositionForm:
+      type: object
+      properties:
+        productId:
+          description: |-
+            Идентификатор продукта.
+
+            Чтобы получить перечень доступных продуктов с идентификаторами, необходимо воспользоваться методом API Продуктового каталога.
+
+            Сценарий мультипродуктового счета не поддерживается. Если в разных Positions указаны разные ProductId, счет не будет выставлен.
+
+            При этом реализован задел на будущее для появления мультипродуктового счета: в разных Positions будут находиться тарифы разных продуктов.
+          type: string
+        tariff:
+          type: array
+          description: 'Тарифы, входящие в счет'
+          items:
+            $ref: '#/components/schemas/TariffForm'
+        orderPackageId:
+          format: uuid
+          description: |-
+            Идентификатор пакета, к которому докупаем или который сменяем/досрочно продляем.
+
+            Заполняется для:
+            - докупки;
+            - досрочного продления;
+            - смены тарифа.
+            Не заполняется для:
+            - покупки;
+            - продления.
+
+            Чтобы получить идентификаторы пакетов, к которым можно докупить или который сменяем/досрочно продляем, необходимо воспользоваться методом API Заказов. На вход методу передается конечный получатель (RecipientAbonentId).
+          type: string
+        orderType:
+          description: |-
+            Тип продажи
+
+            Указыается одно из значений:
+            - для покупки, продления: Create
+            - для смены: Change
+            - для докупки: Rebuy
+            - для досрочного продления: EarlyProlongation
+          enum:
+            - Create
+            - Change
+            - Rebuy
+            - EarlyProlongation
+          type: string
+        recipient:
+          $ref: '#/components/schemas/Abonent'
+      required:
+        - productId
+        - tariff
+        - orderType
+    TariffForm:
+      type: object
+      properties:
+        tariffId:
+          description: |-
+            Идентификатор тарифа.
+
+            Чтобы получить перечень доступных тарифов с идентификаторами, необходимо воспользоваться методом API Продуктового каталога.
+          type: string
+        quantity:
+          format: int32
+          description: Количество покупаемых тарифов (опт)
+          maximum: 2147483647
+          minimum: 1
+          type: integer
+        customPrice:
+          format: double
+          description: |-
+            Стоимость одной приобретаемой единицы – пользовательское значение.
+
+            Применяется для тарифов с открытой ценой.
+
+            Чтобы получить минимальную стоимость тарифа, необходимо воспользоваться методом API Продуктового каталога.
+          minimum: 0
+          type: number
+        modifiers:
+          description: |-
+            Модификаторы к указанному в TariffId тарифу.
+
+            Чтобы получить перечень доступных модификаторов к тарифу и их идентификаторы, необходимо воспользоваться методом API Продуктового каталога.
+
+            Вложенность позволяет указать модификаторы второго и последующих уровней (модификаторы модификаторов).
+          uniqueItems: false
+          type: array
+          items:
+            $ref: '#/components/schemas/TariffForm'
+        Customizations:
+          type: array
+          description: "Кастомизации позволяют настроить состав тарифа, указанного в tariffId. \nПример: при выборе тарифа \"ТРиО. Коммерческие торги\" (sertum_trio_commercial_token) продукта \"ЭП для торгов\" можно указать, нужен ли ускоренный выпуск сертификата, нужно ли включить в счет сопровождение."
+          items:
+            $ref: '#/components/schemas/Customization'
+        PositionalDiscount:
+          $ref: '#/components/schemas/PositionalDiscount'
+      required:
+        - tariffId
+        - quantity
+    Promotion:
+      title: Promotion
+      description: Применённая акция.
+      required:
+        - Id
+      type: object
+      properties:
+        Id:
+          type: string
+    Customization:
+      title: Customizations
+      type: object
+      description: ''
+      properties:
+        Id:
+          type: string
+          description: Идентификатор кастомизации
+        Values:
+          type: array
+          description: Значения кастомизации. У каждой кастомизации свои валидации. Некоторые требуют только одного значения
+          items:
+            type: string
+    PositionalDiscount:
+      title: PositionalDiscount
+      type: object
+      description: 'Размер скидки для конкретного тарифа. Допустимые значения = [0,1)'
+      x-examples: {}
+      properties:
+        Percent:
+          type: number
+          format: double
+          example: '0,85'
+          minimum: 0
+          maximum: 0.99999
