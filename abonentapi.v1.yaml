@@ -122,21 +122,7 @@ paths:
         '500':
           description: Что-то пошло не так
       parameters:
-        - schema:
-            type: string
-          in: query
-          name: inn
-          description: ИНН
-        - schema:
-            type: string
-          in: query
-          name: kpp
-          description: КПП
-        - schema:
-            type: string
-          in: query
-          name: accountId
-          description: Лицевой счет
+        - $ref: '#/components/parameters/filter-by-abonent-requisite'
       description: Поиск абонента по ИНН-КПП или лицевому счету
   '/abonents/{id}/accounts':
     parameters:
@@ -165,4 +151,37 @@ paths:
               items:
                 type: string
 components:
-  schemas: {}
+  schemas:
+    inn-kpp:
+      title: inn-kpp
+      type: object
+      properties:
+        inn:
+          type: string
+          pattern: '^[0-9]{9,12}'
+          description: ИНН
+        kpp:
+          type: string
+          pattern: '^[0-9]{9}'
+          description: КПП
+      required:
+        - inn
+    account:
+      title: account
+      type: object
+      description: Лицевой счет
+      properties:
+        accountId:
+          type: string
+          pattern: '^[0-9]+'
+      required:
+        - accountId
+  parameters:
+    filter-by-abonent-requisite:
+      in: query
+      required: true
+      name: filter
+      schema:
+        oneOf:
+          - $ref: '#/components/schemas/inn-kpp'
+          - $ref: '#/components/schemas/account'
