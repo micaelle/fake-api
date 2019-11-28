@@ -9,9 +9,6 @@ servers:
   - url: 'http://test-api/billing/orders'
   - url: 'https://pulse-api.billing'
     description: ''
-tags:
-  - name: abonents
-    description: Billy/Orders API Abonent Operations
 paths:
   /abonents:
     post:
@@ -105,7 +102,7 @@ paths:
         in: path
         required: true
     post:
-      summary: ''
+      summary: Привязка лицевых счетов к абоненту
       responses:
         '204':
           description: Привязка лицевого счета к абоненту успешно выполнена
@@ -303,11 +300,11 @@ components:
       type: object
       description: Лицевой счет
       properties:
-        accountId:
+        AccountId:
           type: string
-          pattern: '^[0-9]+'
+          format: uuid
       required:
-        - accountId
+        - AccountId
     inn-kpp:
       title: inn-kpp
       type: object
@@ -331,3 +328,6 @@ components:
         oneOf:
           - $ref: '#/components/schemas/inn-kpp'
           - $ref: '#/components/schemas/account'
+tags:
+  - name: abonents
+    description: Billy/Orders API Abonent Operations
