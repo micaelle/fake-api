@@ -7,7 +7,7 @@ info:
     name: 'Slack channel #billing'
 servers:
   - url: 'http://test-api/billing/orders'
-  - url: 'https://pulse-api.billing'
+  - url: 'https://pulse-api.billing' 
     description: ''
 paths:
   '/orders/v0/bills/{billId}':
