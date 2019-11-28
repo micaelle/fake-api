@@ -2,156 +2,312 @@ openapi: 3.0.0
 info:
   title: AbonentAPI
   version: '1.0'
-  description: Billy.Orders Abonent API
   contact:
     name: Somebody
+  description: Billy.Orders Abonent API
 servers:
   - url: 'http://test-api/billing/orders'
   - url: 'https://pulse-api.billing'
     description: ''
+tags:
+  - name: abonents
+    description: Billy/Orders API Abonent Operations
 paths:
-  '/abonents/{id}':
-    get:
-      summary: Your GET  endpoint
-      tags: []
-      description: Получение абонента с реквизитами и лицевыми счетами по его идентификатору
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  abonentId:
-                    type: string
-                    format: uuid
-                  Requisites:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        RequisiteId:
-                          type: string
-                          format: uuid
-                  Accounts:
-                    type: array
-                    uniqueItems: true
-                    items:
-                      type: object
-                      properties:
-                        AccountId:
-                          type: string
-                          format: uuid
-                required:
-                  - abonentId
-        '400':
-          description: Неверные параметры запроса
-        '404':
-          description: Абонент не найден
-        '500':
-          description: Что-то пошло не так
-    parameters:
-      - schema:
-          type: string
-        name: id
-        in: path
-        required: true
   /abonents:
-    parameters: []
     post:
-      summary: ''
+      summary: Создание абонента
+      description: Создание абонента
+      requestBody:
+        description: 'Возможно расширение контракта (например, юридического адреса для формирования документов)'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AbonentCreateForm'
+            examples: {}
       responses:
         '201':
           description: Абонент успешно создан
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  AbonentId:
-                    type: string
-                    format: uuid
-                required:
-                  - AbonentId
+                $ref: '#/components/schemas/Abonent'
+          headers:
+            Location:
+              schema:
+                type: string
+              description: URL созданного ресурса
+              required: true
         '400':
           description: Неверные параметры запроса
         '403':
           description: Доступ запрещен
-        '500':
-          description: Что-то пошло не так
-      description: Создание абонента
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                inn:
-                  type: string
-                  pattern: "^\\d{10,12}"
-                kpp:
-                  type: string
-                  pattern: "^\\d{0,9}"
-                name:
-                  type: string
-                  maxLength: 255
-              required:
-                - inn
-                - name
-        description: 'Возможно расширение контракта (например, юридического адреса для формирования документов)'
+        '422':
+          description: Не удалось обработать содержимое
+      parameters: []
+      tags:
+        - abonents
+      operationId: abonent-creation
     get:
-      summary: ''
+      summary: Поиск абонента по ИНН-КПП или лицевому счету
+      description: Получение абонента по ИНН-КПП или лицевому счету
+      parameters:
+        - $ref: '#/components/parameters/filter-by-abonent-requisite'
       responses:
         '200':
           description: OK
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  AbonentId:
-                    type: string
-                    format: uuid
+                $ref: '#/components/schemas/Abonent'
         '400':
           description: Неверные параметры запроса
         '403':
           description: Доступ запрещен
         '404':
           description: Абонент не найден
-        '500':
-          description: Что-то пошло не так
+        '422':
+          description: Не удалось обработать содержимое
+      operationId: search-abonents
+      tags:
+        - abonents
+  '/abonents/{id}':
+    get:
+      summary: Поиск абонента по id
+      tags: []
+      description: Получение абонента с реквизитами и лицевыми счетами по его идентификатору
       parameters:
-        - $ref: '#/components/parameters/filter-by-abonent-requisite'
-      description: Поиск абонента по ИНН-КПП или лицевому счету
+        - schema:
+            type: string
+          name: id
+          in: path
+          required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Abonent'
+        '400':
+          description: Неверные параметры запроса
+        '403':
+          description: Доступ запрещен
+        '404':
+          description: Абонент не найден
+        '422':
+          description: Не удалось обработать содержимое
+      operationId: get-abonent
   '/abonents/{id}/accounts':
     parameters:
-      - type: string
+      - schema:
+          type: string
         name: id
         in: path
         required: true
     post:
       summary: ''
       responses:
-        '200':
-          description: Связь абонента с лицевыми счетами создана //todo какой код ответа возвращать 200 или 201?
+        '204':
+          description: Привязка лицевого счета к абоненту успешно выполнена
         '400':
           description: Неверные параметры запроса
         '403':
           description: Доступ запрещен
-        '500':
-          description: что-то пошло не так
-      description: Создание связи абонента с лицевыми счетами
+        '422':
+          description: Не удалось обработать содержимое
       requestBody:
+        description: ''
         content:
           application/json:
             schema:
-              type: array
-              description: Массив идентификаторов лицевых счетов
-              items:
-                type: string
+              $ref: '#/components/schemas/AbonentToAccountForm'
+      description: "Метод для привязки существующих лицевых счетов к абоненту. \n\nЛицевой счет представлен массивом пар \"идентификатор ЛС -  продукт\". \n\nСвязь лицевого счета с абонентом необходима для получения информации о том, куда доставить продукт."
+      tags:
+        - abonents
+      operationId: account-abonent-binding
 components:
   schemas:
+    Abonent:
+      title: Abonent
+      type: object
+      x-examples:
+        AbonentExample:
+          AbonentID: 42a66591-a5ac-4afd-8208-59e9166bcb42
+          Accounts:
+            - AccountId: 0b35b383-205a-44b1-982a-ba2e22a35c71
+              ProductId: 8c0bdf92-16b8-4d3e-97bf-d611fbc332a9
+            - AccountId: 7daebb90-0397-48e3-8585-116752fc1bf0
+              ProductId: a625cb70-ff8f-47af-a4bc-0b1283fcdd79
+          Requisites:
+            - RequisiteId: 7f0a845e-af3a-4a1d-b7fa-9ef52c4cf052
+              Inn: '2079338151'
+              Kpp: '207933815'
+              Name: Очень успешная компания
+              TypeId: 9857e824-3946-451e-a490-bcd8988d908c
+      description: Модель абонента
+      properties:
+        Accounts:
+          type: array
+          uniqueItems: true
+          description: Указывается для привязки лицевых счетов к абонентам
+          items:
+            type: object
+            properties:
+              AccountId:
+                type: string
+                description: Лицевой счет. ID ЛС на портале
+                format: uuid
+                pattern: '^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$'
+              ProductId:
+                type: string
+                description: Идентификатор продукта лицевого счета
+                format: uuid
+                pattern: '^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$'
+            required:
+              - AccountId
+              - ProductId
+        Requisites:
+          type: array
+          description: Реквизиты абонента
+          items:
+            type: object
+            properties:
+              RequisiteId:
+                type: string
+                description: Идентификатор в LegalEntities в КС
+                format: uuid
+                pattern: '^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$'
+              Inn:
+                type: string
+                description: ИНН
+                pattern: "^\\d{10,12}"
+              Kpp:
+                type: string
+                description: КПП
+                pattern: "^\\d{9}"
+              Name:
+                type: string
+                description: Наименование организации
+                maxLength: 255
+              TypeId:
+                type: string
+                description: Тип лица. Из справочника типов
+                enum:
+                  - legal
+                  - individual
+            required:
+              - RequisiteId
+              - Inn
+              - Name
+              - TypeId
+        AbonentId:
+          type: string
+          description: Идентификатор абонента
+          format: uuid
+          pattern: '^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$'
+      required:
+        - Requisites
+        - AbonentId
+    AbonentCreateForm:
+      title: AbonentCreateForm
+      type: object
+      x-examples:
+        AbonentRequestExample:
+          Requisites:
+            - Inn: '2079338151'
+              Kpp: '207933815'
+              Name: Очень успешная компания
+              TypeId: 9857e824-3946-451e-a490-bcd8988d908c
+      description: |-
+        Модель для создания сущности "Абонент".
+
+        Позволяется создать абонента с реквизитами.
+
+        //TODO: Пока не знаем, нужно ли хранить массив ссылок на реквизиты для истории
+      properties:
+        Requisites:
+          type: array
+          items:
+            type: object
+            properties:
+              Inn:
+                type: string
+                description: ИНН
+                pattern: "^\\d{10,12}"
+              Kpp:
+                type: string
+                description: КПП
+                pattern: "^\\d{9}"
+              Name:
+                type: string
+                description: Наименование организации
+                maxLength: 255
+              Type:
+                type: string
+                description: Тип лица. Получаем из справочника
+                enum:
+                  - legal
+                  - individual
+            required:
+              - Inn
+              - Name
+              - Type
+      required:
+        - Requisites
+    AbonentToAccountForm:
+      title: AbonentToAccountForm
+      x-examples:
+        AbonentToAccountExample:
+          AbonentID: 42a66591-a5ac-4afd-8208-59e9166bcb42
+          Accounts:
+            - AccountId: 0b35b383-205a-44b1-982a-ba2e22a35c71
+              ProductId: 8c0bdf92-16b8-4d3e-97bf-d611fbc332a9
+      type: object
+      description: |-
+        Модель для создания связей с лицевыми счетами.
+
+        Лицевой счет представлен парой "идентификатор ЛС -  продукт". Связь лицевого счета с абонентом необходима для получения информации о том, куда доставить продукт.
+
+        //TODO: Пока не знаем, нужно ли хранить массив ссылок на реквизиты для истории
+      properties:
+        Accounts:
+          type: array
+          uniqueItems: true
+          description: Указывается для привязки лицевых счетов к абоненту
+          items:
+            type: object
+            properties:
+              AccountId:
+                type: string
+                description: Лицевой счет. Ссылка на ЛС на портале
+                format: uuid
+                pattern: '^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$'
+              ProductId:
+                type: string
+                description: Идентификатор продукта для лицевого счета
+                format: uuid
+                pattern: '^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$'
+            required:
+              - AccountId
+              - ProductId
+        AbonentId:
+          type: string
+          description: Идентификатор абонента
+          format: uuid
+          pattern: '^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$'
+      required:
+        - Accounts
+        - AbonentId
+    account:
+      title: account
+      type: object
+      description: Лицевой счет
+      properties:
+        accountId:
+          type: string
+          pattern: '^[0-9]+'
+      required:
+        - accountId
     inn-kpp:
       title: inn-kpp
       type: object
@@ -166,16 +322,6 @@ components:
           description: КПП
       required:
         - inn
-    account:
-      title: account
-      type: object
-      description: Лицевой счет
-      properties:
-        accountId:
-          type: string
-          pattern: '^[0-9]+'
-      required:
-        - accountId
   parameters:
     filter-by-abonent-requisite:
       in: query
